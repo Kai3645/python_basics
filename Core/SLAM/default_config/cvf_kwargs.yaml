@@ -1,0 +1,21 @@
+# ------------------------------ camera information
+IW: 1280
+IH: 720
+FX: 616.52
+FY: 617.23
+CX: 651.16
+CY: 376.04
+# ------------------------------ image pre-process
+blur_sigma: # None # default
+K: 2.0  # default, zoom in ratio
+# ------------------------------ feature det setting
+use_feature: true  # default
+feature_type: "SIFT"  # default
+knn_ratio_th: 0.7  # default
+# ------------------------------ optical flow setting
+use_optFlow: true  # default, use Shi-Tomasi corner
+flow_min_dis: 10  # default
+flow_win_size: 30  # default
+flow_level: 3  # default
+# ------------------------------ common setting
+distribute_win_size: 10  # default

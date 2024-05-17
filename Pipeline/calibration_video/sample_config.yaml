@@ -1,0 +1,15 @@
+# paths
+module_python_path: "/home/kai/Documents/GitHub/ACRS_MMS/Python"
+video_path: "/home/kai/Desktop/DailySource/M23_03/D2303_30/source/IMG_0043.MOV"
+folder_out: "/home/kai/Desktop/DailySource/M23_03/D2303_30/calib"
+# consts
+BOARD_R: 0.03157
+BOARD_W: 12
+BOARD_H: 6
+IMAGE_W: 3840
+IMAGE_H: 2160
+AREA_RATIO_MAX: 1.00
+AREA_RATIO_MIN: 0.01
+# parameter
+calib_model: -1
+
