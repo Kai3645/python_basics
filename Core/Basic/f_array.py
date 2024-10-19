@@ -2,7 +2,7 @@ import string
 
 import numpy as np
 
-from Core.Basic.a_scalars import NUM_ERROR
+from Core.Basic.scalars import NUM_ERROR
 from Core.Basic.f_print import errPrint
 
 

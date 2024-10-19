@@ -3,34 +3,32 @@ from fnmatch import fnmatch
 
 import numpy as np
 
-from Core.Basic import KaisLog
+from Core.Basic.log import KaisLog
 
 log = KaisLog.get_log()
 
 
-def file_length_(path: str):
-	count = -99
-	with open(path, "r") as fr:
-		for count, _ in enumerate(fr): pass
-	return count + 1
-
-
-def file_length(path: str):
+def file_length(path: str, ):
+	"""
+	count file rows by counting '\n'
+	:param path:
+	:return:
+	"""
 	length = 0
 	with open(path, 'rb') as fr:
 		end = ""
-		while True:  # cost 128 MB
-			data = fr.read(0x8000000)
+		while True:  # cost 0.5 GB
+			data = fr.read(0x20000000)
 			if not data: break
 			length += data.count(b'\n')
 			end = data
-		if end[-1:] != b'\n': length += 1
+		if end[-1] != b'\n': length += 1
 	return length
 
 
 def try_file(path: str, num: int = -1):
 	"""
-	try to display data in an unknown file
+	try to display data for an unknown file
 	:param path:
 	:param num: rows to display
 	:return:
@@ -138,25 +136,25 @@ def treedir(root: str, *, folder_only: bool = False, show_ignore: bool = True, s
 	:param space_char:
 	:return: tree: string
 	"""
-
+	
 	space_char2 = space_char + space_char
-
+	
 	s_head_0 = space_char2 + "│" + space_char2  # "  │"
 	s_head_1 = space_char2 + "├─ "  # "  ├─ "
 	s_head_2 = space_char2 + "└─ "  # "  └─ "
 	s_head_3 = space_char * 5  # "     "
-
+	
 	def tree_dir(local_path, str_head = ""):
 		tmp_str = ""
 		if show_ignore: names = np.asarray(os.listdir(local_path))
 		else: names = listdir(local_path)
 		names.sort()
-
+		
 		valid = [os.path.isdir(local_path + "/" + n) for n in names]
 		invalid = np.logical_not(valid)
 		file_count = np.sum(invalid)
 		has_file = file_count > 0
-
+		
 		folder_count = np.sum(valid)
 		for i, n in enumerate(names[valid], 1):
 			new_head = str_head
@@ -169,7 +167,7 @@ def treedir(root: str, *, folder_only: bool = False, show_ignore: bool = True, s
 				new_head += s_head_3
 			tmp_str += tree_dir(local_path + "/" + n, new_head)
 		if not has_file or folder_only: return tmp_str
-
+		
 		for i, n in enumerate(names[invalid], 1):
 			new_head = str_head
 			tmp_str += str_head
@@ -180,7 +178,7 @@ def treedir(root: str, *, folder_only: bool = False, show_ignore: bool = True, s
 				tmp_str += s_head_2 + n + "\n"
 				new_head += s_head_3
 		return tmp_str + str_head + space_char2 + "\n"
-
+	
 	tree = space_char2 + f"@ \"{root}\"\n"
 	tree += tree_dir(root)
 	return tree
@@ -195,24 +193,24 @@ def treedir_markdown_style(root: str, *, show_ignore: bool = False, space_char =
 	:return: tree: string
 	"""
 	root = str2folder(root)
-
+	
 	space_char2 = space_char + space_char
 	s_head_0 = space_char2 + "│" + space_char2  # "  │"
 	s_head_1 = space_char2 + "├─ "  # "  ├─ "
 	s_head_2 = space_char2 + "└─ "  # "  └─ "
 	s_head_3 = space_char * 5  # "     "
-
+	
 	def tree_dir(sub_root, local_path, str_head = ""):
 		tmp_str = ""
 		if show_ignore: names = np.asarray(os.listdir(sub_root))
 		else: names = listdir(sub_root)
 		names.sort()
-
+		
 		valid = [os.path.isdir(sub_root + n) for n in names]
 		invalid = np.logical_not(valid)
 		file_count = np.sum(invalid)
 		has_file = file_count > 0
-
+		
 		folder_count = np.sum(valid)
 		for i, n in enumerate(names[valid], 1):
 			new_head = str_head
@@ -225,7 +223,7 @@ def treedir_markdown_style(root: str, *, show_ignore: bool = False, space_char =
 				new_head += s_head_3
 			tmp_str += tree_dir(sub_root + n + "/", local_path + n + "/", new_head)
 		if not has_file: return tmp_str
-
+		
 		for i, n in enumerate(names[invalid], 1):
 			new_head = str_head
 			tmp_str += str_head
@@ -237,7 +235,7 @@ def treedir_markdown_style(root: str, *, show_ignore: bool = False, space_char =
 				tmp_str += s_head_2 + f"[{n}]({file_path})\n"
 				new_head += s_head_3
 		return tmp_str + str_head + space_char2 + "\n"
-
+	
 	tree = space_char2 + f"@ \"{root}\"\n"
 	tree += tree_dir(root, "./")
 	return tree

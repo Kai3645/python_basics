@@ -1,4 +1,5 @@
-from Core.Basic.a_scalars import *
+from Core.Basic.scalars import *
+from Core.Basic.log import KaisLog
 from Core.Basic.f_array import *
 from Core.Basic.f_thread import *
 from Core.Basic.f_os import *
