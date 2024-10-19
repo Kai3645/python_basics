@@ -1,0 +1,12 @@
+Indentation_Key:
+    -
+        - "{"
+        - "}"
+    -
+        - "["
+        - "]"
+NewLine_Key:
+    - ","
+    - ";"
+Interval_Key:
+    - ":"
