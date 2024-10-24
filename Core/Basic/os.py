@@ -4,8 +4,6 @@ from fnmatch import translate, fnmatchcase
 
 from Core.Basic.log import KaisLog
 
-# import numpy as np
-
 log = KaisLog.get_log()
 
 
@@ -78,8 +76,10 @@ def mkdir(loc: str, new_f: str):
 	:param new_f: new folder name
 	:return: folder path end with os separator
 	"""
-	assert os.path.exists(loc), log.error(f"mkdir: not exist local path .. \"{loc}\"")
+	if not os.path.exists(loc):
+		raise FileNotFoundError(f"mkdir: not exist local path. \"{loc}\"")
 	if loc[-1] != os.sep: loc += os.sep
+	
 	loc += new_f + os.sep
 	if os.path.exists(loc):
 		log.warning(f"mkdir: path exist .. \"{loc}\"")
@@ -111,11 +111,14 @@ def listdir(loc: str, pats: str | list | None = None, *, ignore: str | list | No
 	:param ignore: ignore file pattern or its list
 	:return: file_names:
 	"""
-	assert os.path.exists(loc), log.error(f"mkdir: not exist local path .. \"{loc}\"")
+	if not os.path.exists(loc):
+		raise FileNotFoundError(f"listdir: not exist local path. \"{loc}\"")
+	if not os.path.isdir(loc):
+		raise NotADirectoryError(f"listdir: not a folder path. \"{loc}\"")
 	if loc[-1] != os.sep: loc += os.sep
 	names = os.listdir(loc)
 	length = len(names)
-	if length == 0: return None
+	if length == 0: return []
 	
 	valid = [True] * length if pats is None else [False] * length
 	if pats is not None:
@@ -141,7 +144,7 @@ def listdir(loc: str, pats: str | list | None = None, *, ignore: str | list | No
 	rets = []
 	for flag, fn in zip(valid, names):
 		if flag: rets.append(fn)
-	if len(rets) == 0: return None
+	if len(rets) == 0: return []
 	rets.sort()
 	return rets
 
@@ -153,6 +156,10 @@ def treedir(loc: str, *, ignore: str | list | None = None):
 	:param ignore: ignore file pattern or its list
 	:return: tree: string
 	"""
+	if not os.path.exists(loc):
+		raise FileNotFoundError(f"treedir: not exist local path. \"{loc}\"")
+	if loc[-1] != os.sep: loc += os.sep
+	
 	head_0 = "│   "
 	head_1 = "├─ "
 	head_2 = "└─ "
@@ -191,8 +198,6 @@ def treedir(loc: str, *, ignore: str | list | None = None):
 				_tree += head_2 + n + "\n"
 		return _tree
 	
-	assert os.path.exists(loc), log.error(f"mkdir: not exist local path .. \"{loc}\"")
-	if loc[-1] != os.sep: loc += os.sep
-	tree = f"@\"{loc}\"\n"
+	tree = f"@\"{loc[:-1]}\"\n"
 	tree += _treedir(loc)
 	return tree

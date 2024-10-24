@@ -1,4 +1,5 @@
 import math
+
 # from tkinter import TclError
 
 import matplotlib.pyplot as plt
@@ -10,7 +11,7 @@ from matplotlib import rcParams
 from matplotlib.lines import Line2D
 from matplotlib.patches import Ellipse
 
-from Core.Basic import colPrint
+from Core.Basic import color_print
 from Core.Statistic import histogram
 from Core.Visualization.KaisColor import KaisColor
 
@@ -62,12 +63,12 @@ class KaisCanvas:
 		self.ax = self.fig.add_axes(self.rect)
 		self.layer = 20  # left some space for manually setting
 		plt.ion()  # enable interactive mode
-
+	
 	def layer_update(self, step: int = 1):
 		num = self.layer
 		self.layer += step
 		return num
-
+	
 	def set_axis(self, **kwargs):
 		if kwargs.get("sci_on", False): self.ax.ticklabel_format(
 			useMathText = True, axis = "both",
@@ -77,7 +78,7 @@ class KaisCanvas:
 			fmt = "{x:." + str(kwargs["decimal"]) + "f}"
 			self.ax.xaxis.set_major_formatter(ticker.StrMethodFormatter(fmt))
 			self.ax.yaxis.set_major_formatter(ticker.StrMethodFormatter(fmt))
-
+		
 		if kwargs.get("equal_axis", True): self.ax.axis("equal")
 		else: self.ax.axis("auto")
 		self.ax.tick_params(which = "both", direction = 'in')
@@ -91,7 +92,7 @@ class KaisCanvas:
 		if "xlabel" in kwargs: self.ax.set_xlabel(kwargs["xlabel"])
 		if "ylabel" in kwargs: self.ax.set_ylabel(kwargs["ylabel"])
 		if "title" in kwargs: self.ax.set_title(kwargs["title"])
-
+	
 	def force_equal_xlim(self, x1, x2, y_center):
 		self.ax.axis("auto")
 		w_half = (x2 - x1) / 2
@@ -100,7 +101,7 @@ class KaisCanvas:
 		y2 = y_center + h_half
 		self.ax.set_xlim(x1, x2)
 		self.ax.set_ylim(y1, y2)
-
+	
 	def force_equal_ylim(self, y1, y2, x_center):
 		self.ax.axis("auto")
 		h_half = (y2 - y1) / 2
@@ -109,23 +110,23 @@ class KaisCanvas:
 		x2 = x_center + w_half
 		self.ax.set_xlim(x1, x2)
 		self.ax.set_ylim(y1, y2)
-
+	
 	def save(self, path: str, dpi: int = 250):
 		self.fig.savefig(path, dpi = dpi)
-
+	
 	def clear(self):
 		self.ax.cla()
-
+	
 	def show(self, auto = False, sleep = 1):
 		self.fig.show()
 		if not auto:
-			colPrint("press enter continue ..", "yellow")
+			color_print("yellow", "press enter continue ..")
 			plt.pause(sleep)  # time for drawing
 			input()
 		else:
 			plt.pause(sleep)  # time for drawing
 		pass
-
+	
 	@staticmethod
 	def close():
 		# try:
@@ -133,7 +134,7 @@ class KaisCanvas:
 		plt.close()
 		# except TclError: pass
 		pass
-
+	
 	# draw funcs
 	def draw_points(self, points, **para):
 		"""
@@ -146,7 +147,7 @@ class KaisCanvas:
 		para["color"] = para.get("color", KaisColor.rand() / 255)
 		para["zorder"] = para.get("zorder", self.layer_update())
 		self.ax.scatter(points[:, 0], points[:, 1], **para)
-
+	
 	def draw_polyline(self, points, **para):
 		"""
 		https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html
@@ -158,7 +159,7 @@ class KaisCanvas:
 		para["color"] = para.get("color", KaisColor.rand() / 255)
 		para["zorder"] = para.get("zorder", self.layer_update())
 		self.ax.plot(points[:, 0], points[:, 1], **para)
-
+	
 	def draw_line(self, point1, point2, **para):
 		"""
 		https://matplotlib.org/stable/api/_as_gen/matplotlib.lines.Line2D.html
@@ -179,7 +180,7 @@ class KaisCanvas:
 				flag = False
 			self.ax.add_line(line)
 		pass
-
+	
 	def draw_vecRay(self, point, vector, length: float = 1, both_side = True, **para):
 		"""
 		https://matplotlib.org/stable/api/_as_gen/matplotlib.lines.Line2D.html
@@ -199,7 +200,7 @@ class KaisCanvas:
 		para["zorder"] = para.get("zorder", self.layer_update())
 		line = Line2D((pt0[0], pt1[0]), (pt0[1], pt1[1]), **para)
 		self.ax.add_line(line)
-
+	
 	def draw_angleRay(self, point, angle, length: float = 1, both_side = True, **para):
 		"""
 		https://matplotlib.org/stable/api/_as_gen/matplotlib.lines.Line2D.html
@@ -212,7 +213,7 @@ class KaisCanvas:
 		"""
 		vector = [math.cos(angle), math.sin(angle)]
 		self.draw_vecRay(point, vector, length, both_side, **para)
-
+	
 	def draw_ellipse(self, point, vector, a, b, **para):
 		"""
 		https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Ellipse.html
@@ -227,9 +228,9 @@ class KaisCanvas:
 		para["fill"] = para.get("fill", False)
 		para["color"] = para.get("color", KaisColor.rand() / 255)
 		para["zorder"] = para.get("zorder", self.layer_update())
-		ellipse = Ellipse(point, a * 2, b * 2, angle, **para)
+		ellipse = Ellipse(point, a * 2, b * 2, angle = angle, **para)
 		self.ax.add_patch(ellipse)
-
+	
 	def draw_circle(self, x, y, r, n = 200, **para):
 		"""
 		https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html
@@ -240,12 +241,12 @@ class KaisCanvas:
 		:param para: kwargs for pyplot.plot
 		:return:
 		"""
-		T = np.linspace(0, math.pi * 2, n)
+		T = np.linspace(0.0, math.pi * 2, n)
 		P = np.zeros((n, 2))
 		P[:, 0] = np.cos(T) * r + x
 		P[:, 1] = np.sin(T) * r + y
 		self.draw_polyline(P, **para)
-
+	
 	def draw_covariance(self, mean, covar, coe: float = 3, **para):
 		"""
 		https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Ellipse.html
@@ -259,19 +260,19 @@ class KaisCanvas:
 		"""
 		mean = np.asarray(mean, np.float64)
 		covar = np.asarray(covar, np.float64)
-
+		
 		lam, W = np.linalg.eig(covar)
 		idxes = lam.argsort()[::-1]
 		lam = lam[idxes]
 		W = W[:, idxes]
-
+		
 		sigma = np.sqrt(lam)
 		a, b = sigma * coe
 		para["color"] = para.get("color", KaisColor.rand() / 255)
 		para["zorder"] = para.get("zorder", self.layer_update())
 		self.draw_ellipse(mean, W[:, 0], a, b, **para)
 		return sigma, W
-
+	
 	# graph funcs
 	def histogram(self, data, normalize = True, denoise_on: bool = False, fit_on: bool = True, fit_type: str = "norm",
 	              *,
@@ -294,7 +295,7 @@ class KaisCanvas:
 		length = len(data)
 		if length < 10: return None
 		D = np.asarray(data)
-
+		
 		x0, y0 = histogram(D, normalize = normalize)
 		Q3i = int(length / 4 * 3)
 		dD = np.abs(D - np.mean(D))
@@ -306,13 +307,13 @@ class KaisCanvas:
 			if idxes[0] == idx_best: break
 			idx_best = idxes[0]
 		x1, y1 = histogram(D[idxes[:Q3i]], normalize = normalize)
-
+		
 		if step_para is None: step_para = dict()
 		if denoise_on:
 			step_para["label"] = step_para.get("label", "hist")
 			step_para["zorder"] = step_para.get("zorder", self.layer_update(2))
 			self.ax.step(x1, y1, where = "mid", **step_para)
-
+			
 			step_para["label"] += "_raw"
 			step_para["color"] = "gray"
 			step_para["alpha"] = 0.7
@@ -322,27 +323,27 @@ class KaisCanvas:
 			step_para["label"] = step_para.get("label", "hist")
 			step_para["zorder"] = step_para.get("zorder", self.layer_update(2))
 			self.ax.step(x0, y0, where = "mid", **step_para)
-
+		
 		dist = getattr(scipy.stats, fit_type)
 		num = (x0[0] - x0[-1]) / (x1[0] - x1[-1]) * 100
 		T = np.linspace(x0[0], x0[-1], num = int(num))
 		param = dist.fit(D[idxes[:Q3i]])
 		if fit_on:
 			pdf_fitted = dist.pdf(T, *param[:-2], loc = param[-2], scale = param[-1])
-
+			
 			if fit_para is None: fit_para = dict()
 			fit_para["label"] = fit_para.get("label", "fitting-" + fit_type)
 			fit_para["zorder"] = fit_para.get("zorder", self.layer_update())
 			self.ax.plot(T, pdf_fitted, **fit_para)
 		return param
-
+	
 	def hist_image_gray(self, image):
 		result = np.zeros(256, int)
 		index, count = np.unique(image.ravel(), return_counts = True)
 		result[index] = count
 		self.ax.step(np.arange(256), result, zorder = self.layer_update())
 		return result
-
+	
 	def hist_image(self, image):
 		src = np.atleast_3d(image)
 		_, _, c = src.shape
@@ -354,35 +355,33 @@ class KaisCanvas:
 			self.ax.step(np.arange(256), result[:, i], color = colors[i],
 			             label = f"layer {i}", zorder = self.layer_update())
 		return result
-
+	
 	pass
 
 
 if __name__ == '__main__':
-	import scipy.stats
-
-	folder = "/home/kai/PycharmProjects/pyCenter/d_2022_0728/out/"
+	folder = "/home/lab/Desktop/python_resource/M24_10/D2410_23/out/"
 	can = KaisCanvas(dark_mode = True, fig_size = (6, 4))
-
-
+	
+	
 	def main():
-		total = 3000
+		total = 30000
 		data = np.random.normal(2, 2, total)
-
-		can.histogram(data)
-
+		
+		can.histogram(data, normalize = True)
+		
 		can.set_axis(equal_axis = False, legend_on = True)
 		can.save(folder + "hist1.jpg", dpi = 200)
 		can.clear()
-
+		
 		can.ax.hist(data, histtype = "step", align = "mid", density = True)
-
+		
 		can.set_axis(equal_axis = False)
 		can.save(folder + "hist2.jpg", dpi = 200)
-
+		
 		pass
-
-
+	
+	
 	main()
 	can.close()
 	pass

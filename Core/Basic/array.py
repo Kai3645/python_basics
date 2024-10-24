@@ -60,11 +60,10 @@ def arg_interpolate(res, src, isClosed: bool = False):
 	res = np.asanyarray(res)
 	src = np.asanyarray(src)
 	
-	assert res.ndim > 0, log.error("@arg_interpolate: res, 1d like  array required")
-	
 	len_res = len(res)
 	
-	assert len_res > 1, log.error("@arg_interpolate: res, at least 2 members")
+	if len(res) < 2:
+		raise ValueError(f"{__name__}: @res, less than two elements ..")
 	
 	if src.ndim == 0:
 		idx_L, idx_R = -1, -1
@@ -130,10 +129,12 @@ def scaling(arr_L, arr_R, src):
 	arr_L = np.asanyarray(arr_L)
 	arr_R = np.asanyarray(arr_R)
 	src = np.asanyarray(src)
-	assert len(src) == len(arr_L) == len(arr_R), log.error("@scaling: len(x1) = len(x1) = len(x1)")
+	if len(arr_L) == len(arr_R) or len(src) != len(arr_L):
+		raise ValueError(f"{__name__}: not same array length")
 	
 	den = arr_R - arr_L
-	assert np.sum(den <= 0), log.error("@scaling: math err, den = 0")
+	if np.sum(den <= 0) > 0:
+		raise ValueError(f"{__name__}: got left num >= right num")
 	
 	return (src - arr_L) / den
 
@@ -230,7 +231,9 @@ def passwd_generator(length, level: int = 4):
 		4 -> lower + upper letters + digits + punctuation (x, 5, 3, 2) / 12
 	:return:
 	"""
-	assert length >= 6, log.error("@passwd_generator: length must be >= 6")
+	if length < 6:
+		log.warning("@passwd_generator: length should be >= 6")
+		length = 6
 	
 	request = [0, 0, 0, 0]  # [1, a, A, *]
 	if level == 0: request[0] = length

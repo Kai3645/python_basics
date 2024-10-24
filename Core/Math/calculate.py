@@ -3,7 +3,7 @@ import math
 
 def unwrap_angle(a, ref):
 	"""
-	wrap angle near to reference angle
+	wrap angle near to reference
 	:param a: angle [rad]
 	:param ref: reference angle [rad]
 	:return: fixed angle [rad]
