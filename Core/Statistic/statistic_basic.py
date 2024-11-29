@@ -131,33 +131,38 @@ def merge_covariance(x: np.ndarray, P: np.matrix, y: np.ndarray, Q: np.matrix):
 	return z, R
 
 
-def histogram(x, *, normalize: bool = True):
+def histogram(arr, bin_width = None, *, normalize: bool = True):
 	"""
 	IQR --> https://en.wikipedia.org/wiki/Interquartile_range
 	FD --> https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule
 	SR --> https://www.vosesoftware.com/riskwiki/Sturgesrule.php
-	:param x:
+	:param arr:
+	:param bin_width:
 	:param normalize:
 	:return:
 	"""
-	n = len(x)
-	idxes = np.argsort(x)
+	n = len(arr)
+	if n < 4: raise ValueError(f"histogram: array length = {n} < 4")
+
+	X = np.asarray(arr)
+	idxes = np.argsort(X)
 	i0 = idxes[0]
 	i1 = idxes[round(n / 4)]
-	i3 = idxes[min(round(n * 3 / 4), n - 1)]
+	i3 = idxes[round(n * 3 / 4)]
 	i4 = idxes[-1]
 	
-	IQR = x[i3] - x[i1]
-	FD = 2 * IQR / pow(n, 1 / 3)
-	R = x[i4] - x[i0]
-	SR = R / (1 + 3.322 * math.log10(n))
-	bin_width = min(SR, FD)
+	if bin_width is None:
+		IQR = X[i3] - X[i1]
+		FD = 2 * IQR / pow(n, 1 / 3)
+		R = X[i4] - X[i0]
+		SR = R / (1 + 3.322 * math.log10(n))
+		bin_width = SR if SR < FD else FD
 	
-	lim_L = int(x[i0] / bin_width) - 2
-	lim_R = int(x[i4] / bin_width) + 2
+	lim_L = math.floor(X[i0] / bin_width) - 2
+	lim_R = math.ceil(X[i4] / bin_width) + 2
 	length = lim_R - lim_L
 	
-	tmp_data = x - lim_L * bin_width
+	tmp_data = X - lim_L * bin_width
 	vote_L = ((tmp_data + NUM_ERROR) / bin_width).astype(int)
 	vote_R = ((tmp_data - NUM_ERROR) / bin_width).astype(int)
 	vote = np.concatenate((vote_L, vote_R))

@@ -11,6 +11,7 @@ log = KaisLog.get_log()
 def verify_normal_distribution(data):
 	"""
 	work well for researching, doesn't work as a function
+	for technically verify normal distribution, use Anderson-Darling
 	:param data:
 	:return:
 	"""
@@ -18,8 +19,9 @@ def verify_normal_distribution(data):
 	trust_count = 0
 	mu, sigma = 0, -1
 	log.info("verify normal distribution:")
+	data = data - np.mean(data)
 	
-	# 1, D'Agostino-Pearson:
+	# 1, D'Agostino-Pearson: sensitive to noise, work well for small data
 	if len(data) > 20:
 		stat, p = stats.normaltest(data)
 		if p > 0.05:
@@ -29,15 +31,15 @@ def verify_normal_distribution(data):
 			log.info("\tAgostino: disagree")
 	else: methods_counts -= 1
 	
-	# 2, Kolmogorov-Smirnov:
-	stat, p = stats.kstest(data - np.mean(data), "norm")
-	if p < 0.05:
+	# 2, Kolmogorov-Smirnov: not work ..
+	stat, p = stats.kstest(data - np.mean(data), len(data), "norm")
+	if p > 0.05:
 		log.info("\tKolmogorov: agree")
 		trust_count += 2
 	else:
 		log.info("\tKolmogorov: disagree")
 	
-	# 3, Shapiro-Wilk, data N should < 5000
+	# 3, Shapiro-Wilk, data N should < 5000, a bit more sensitive, works well, anyway
 	if len(data) < 5000:
 		stat, p = stats.shapiro(data)
 		if p > 0.05:
@@ -47,10 +49,9 @@ def verify_normal_distribution(data):
 			log.info("\tShapiro: disagree")
 	else: methods_counts -= 1
 	
-	# 4, Anderson-Darling: compare to critical at 5%, N should > 10
+	# 4, Anderson-Darling: compare to critical at 5%, N should > 10, the best way to verify
 	if len(data) > 10:
 		result = stats.anderson(data)
-		print(result)
 		if result.statistic < result.critical_values[2]:
 			log.info("\tAnderson: agree")
 			trust_count += 3

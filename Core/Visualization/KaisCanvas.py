@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
 import scipy.interpolate
-import scipy.stats
+from scipy import stats
 from matplotlib import rcParams
 from matplotlib.lines import Line2D
 from matplotlib.patches import Ellipse
