@@ -13,6 +13,11 @@ def best_resize_shape(w_src: int, h_src: int, a_dst: int, *, is_width: bool = Tr
 	respond to demand: keep image aspect while reshaping
 	given image[:w_src, :h_src]
 	reshape image[:w_fit, :h_fit] --into--> image[:w_dst, :h_dst]
+	
+	USAGE SAMPLE:
+		w_fit, h_fit, w_dst, h_dst = best_resize_shape(w_src, h_src, a_dst, is_width = True)
+		dst = cv2.resize(src[:w_fit, :h_fit], (w_dst, h_dst))
+	
 	:param w_src:
 	:param h_src:
 	:param a_dst:
