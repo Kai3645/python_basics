@@ -314,3 +314,8 @@ def calibrate_camera(corners, border_w, border_h, board_r, image_shape, test_num
 # 	M_c2w[:3, 3] = tvec
 # 	# M_c2w *= np.asmatrix("1 0 0 0; 0 -1 0 0; 0 0 -1 0; 0 0 0 1")
 # 	return np.linalg.inv(M_c2w)
+
+
+if __name__ == '__main__':
+	pts = chessboard_corner_3d(10, 8, 2)
+	print(pts)

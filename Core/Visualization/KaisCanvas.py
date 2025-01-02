@@ -11,7 +11,6 @@ from matplotlib import rcParams
 from matplotlib.lines import Line2D
 from matplotlib.patches import Ellipse
 
-from Core.Basic import color_print
 from Core.Statistic import histogram
 from Core.Visualization.KaisColor import KaisColor
 
@@ -47,6 +46,7 @@ class KaisCanvas:
 		label_size = kwargs.get("label_size", 13)
 		rcParams["legend.fontsize"] = label_size
 		rcParams["axes.titlesize"] = label_size
+		rcParams["interactive"] = False
 		# ============================================================
 		#  fig initiation
 		# ============================================================
@@ -62,7 +62,6 @@ class KaisCanvas:
 		self.fig = plt.figure(figsize = self.figsize)
 		self.ax = self.fig.add_axes(self.rect)
 		self.layer = 20  # left some space for manually setting
-		plt.ion()  # enable interactive mode
 	
 	def layer_update(self, step: int = 1):
 		num = self.layer
@@ -117,15 +116,9 @@ class KaisCanvas:
 	def clear(self):
 		self.ax.cla()
 	
-	def show(self, auto = False, sleep = 1):
-		self.fig.show()
-		if not auto:
-			color_print("yellow", "press enter continue ..")
-			plt.pause(sleep)  # time for drawing
-			input()
-		else:
-			plt.pause(sleep)  # time for drawing
-		pass
+	@staticmethod
+	def show():
+		plt.show()
 	
 	@staticmethod
 	def close():

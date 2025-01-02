@@ -6,7 +6,6 @@ from tkinter import filedialog
 import cv2
 import numpy as np
 from PIL import Image, ImageTk
-from fontTools.cffLib.specializer import commandsToProgram
 
 if __name__ == "__main__":
 	FOLDER = "/home/lab/Desktop/python_resource/M24_12/D2412_20/res/"
