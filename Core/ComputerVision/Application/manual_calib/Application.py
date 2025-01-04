@@ -14,7 +14,7 @@ if __name__ == "__main__":
 	
 	sys.path.append(os.path.dirname(__file__))
 	
-	FOLDER = "/home/lab/Desktop/python_resource/M25_01/D2501_01/out/"
+	FOLDER = "/home/lab/Desktop/python_resource/M25_01/D2501_03/out/"
 	
 	
 	class Application:
@@ -181,7 +181,7 @@ if __name__ == "__main__":
 							y2 = self.can.grid_ha * j
 							pts_obj.append([x2, y2, 0])
 					if len(pts_img) < 20: return
-
+					
 					pts_obj = np.asarray(pts_obj, np.float32)
 					pts_img = np.asarray(pts_img, np.float32)
 					print("pts_obj shape = ", pts_obj.shape)
@@ -191,7 +191,7 @@ if __name__ == "__main__":
 					self.pts_img_cash.append(pts_img)
 					
 					w, h, src = self.can.img_cash[0]
-					mat = np.eye(3)
+					mat = np.asarray([[h, 0, w / 2], [0, h, h / 2], [0, 0, 1]])
 					dist = np.zeros(14)
 					self.calibrate_cash = mse_err, mat, dist, Rs, Ts = cv2.calibrateCamera(
 						self.pts_obj_cash, self.pts_img_cash, (w, h), mat, dist,
@@ -199,7 +199,7 @@ if __name__ == "__main__":
 							cv2.CALIB_RATIONAL_MODEL |  # using k4, k5, k6, upgrade to len(dist) == 8
 							cv2.CALIB_THIN_PRISM_MODEL |  # using s1, s2, s3, s4, upgrade to len(dist) == 12
 							cv2.CALIB_TILTED_MODEL |  # using tauX, tauY, upgrade to len(dist) == 14
-							# cv2.CALIB_USE_INTRINSIC_GUESS |  # give init fx, fy, cx, cy, or (cx = 0.5 * W, cy = 0.5 * H)
+							cv2.CALIB_USE_INTRINSIC_GUESS |  # give init fx, fy, cx, cy, or (cx = 0.5 * W, cy = 0.5 * H)
 							# cv2.CALIB_USE_INTRINSIC_GUESS |  # cx = 0.5 * W, cy = 0.5 * H
 							cv2.CALIB_FIX_ASPECT_RATIO |  # const fx / fy
 							# cv2.CALIB_FIX_FOCAL_LENGTH |  # const fx, fy
@@ -235,6 +235,7 @@ if __name__ == "__main__":
 					                      f"    ty >> {dist[13]:.8f}\n"
 					                      f"==============================\n")
 					T_info.config(state = "disabled")
+					T_info.see(tk.END)
 					
 					print("mse_err = ", mse_err)
 					print("mat = ", mat)
