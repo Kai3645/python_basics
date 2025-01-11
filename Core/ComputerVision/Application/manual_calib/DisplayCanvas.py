@@ -230,7 +230,7 @@ class DisplayCanvas(tk.Canvas):
 		self.create_image(a, b, image = self.tk_img, anchor = "nw")
 	
 	def update(self):
-		self.update_image()
+		self.draw_image()
 		pass
 
 

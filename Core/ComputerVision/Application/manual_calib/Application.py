@@ -14,7 +14,7 @@ if __name__ == "__main__":
 	
 	sys.path.append(os.path.dirname(__file__))
 	
-	FOLDER = "/home/lab/Desktop/python_resource/M25_01/D2501_03/out/"
+	FOLDER = "/home/lab/Desktop/python_resource/M25_01/D2501_05/out/"
 	
 	
 	class Application:
@@ -166,8 +166,8 @@ if __name__ == "__main__":
 			self.pts_img_cash = []
 			self.loop_count = 0
 			
-			self.calibrate_cash = None
 			self.calibrate_flag = True
+			self.calibrate_cash = None  # mse_err, mat, dist, Rs, Ts
 			
 			def update_calibration():
 				if self.can.is_init and self.is_detected and self.calibrate_flag:
@@ -191,7 +191,7 @@ if __name__ == "__main__":
 					self.pts_img_cash.append(pts_img)
 					
 					w, h, src = self.can.img_cash[0]
-					mat = np.asarray([[h, 0, w / 2], [0, h, h / 2], [0, 0, 1]])
+					mat = np.asarray([[w, 0, w / 2], [0, w, h / 2], [0, 0, 1]])
 					dist = np.zeros(14)
 					self.calibrate_cash = mse_err, mat, dist, Rs, Ts = cv2.calibrateCamera(
 						self.pts_obj_cash, self.pts_img_cash, (w, h), mat, dist,
@@ -201,10 +201,15 @@ if __name__ == "__main__":
 							cv2.CALIB_TILTED_MODEL |  # using tauX, tauY, upgrade to len(dist) == 14
 							cv2.CALIB_USE_INTRINSIC_GUESS |  # give init fx, fy, cx, cy, or (cx = 0.5 * W, cy = 0.5 * H)
 							# cv2.CALIB_USE_INTRINSIC_GUESS |  # cx = 0.5 * W, cy = 0.5 * H
-							cv2.CALIB_FIX_ASPECT_RATIO |  # const fx / fy
+							# cv2.CALIB_FIX_ASPECT_RATIO |  # const fx / fy
 							# cv2.CALIB_FIX_FOCAL_LENGTH |  # const fx, fy
 							# cv2.CALIB_ZERO_TANGENT_DIST |  # const p1, p2 == 0
 							# cv2.CALIB_FIX_K1 |  # const Ki == 0, or init by CALIB_USE_INTRINSIC_GUESS
+							# cv2.CALIB_FIX_K2 |
+							# cv2.CALIB_FIX_K3 |
+							# cv2.CALIB_FIX_K4 |
+							# cv2.CALIB_FIX_K5 |
+							# cv2.CALIB_FIX_K6 |
 							# cv2.CALIB_FIX_S1_S2_S3_S4 |  # const s1, s2, s3, s4 == 0, or init by CALIB_USE_INTRINSIC_GUESS
 							# cv2.CALIB_FIX_TAUX_TAUY |  # const tauX, tauY == 0, or init by CALIB_USE_INTRINSIC_GUESS
 							0  # for format only

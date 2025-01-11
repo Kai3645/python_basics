@@ -1,6 +1,4 @@
 import math
-from datetime import datetime
-from time import sleep
 
 import cv2
 import numpy as np
@@ -32,76 +30,38 @@ def hist(X, th, N = 20):
 	return center, valid
 
 
-def detect_center_cross(image, mask, th):
-	# img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-	# img = cv2.GaussianBlur(img, (3, 3), 1.414)
-	_, img = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+def detect_center_cross(img, mask, th):
+	_, img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 	
 	kernel = np.ones((3, 3), np.uint8)
 	img = cv2.dilate(img, kernel, iterations = 1)
 	img = cv2.erode(img, kernel, iterations = 2)
 	img[mask == 0] = 0
 	
+	th = round(th)
 	h, w = img.shape
 	ys, xs = np.argwhere(img > 200).T
-	# pts = np.vstack([xs, ys]).T
 	
-	th = round(th)
-	if np.sum(img > 200) < 10: return w / 2, h / 2
+	if len(xs) < 10: return w / 2, h / 2
 	
 	hist_w = np.sum(img, axis = 0)
 	tmp_w = np.zeros(w + 2 * th, float)
 	for i in range(th * 2 + 1):
 		tmp_w[i:i + w] += hist_w
 	tmp_w[th:th + w] += hist_w
-	cx0 = np.argmax(tmp_w) - th
-	# sum_x = 0
-	# count = 0
-	# for i in range(max(0, cx0 - th), min(w, cx0 + th)):
-	# 	sum_x += hist_w[i] * i
-	# 	count += hist_w[i]
-	# cx1 = sum_x / count
+	cx = np.argmax(tmp_w) - th
 	
 	hist_h = np.sum(img, axis = 1)
 	tmp_h = np.zeros(h + 2 * th, float)
 	for i in range(th * 2 + 1):
 		tmp_h[i:i + h] += hist_h
 	tmp_h[th:th + h] += hist_h
-	cy0 = np.argmax(tmp_h) - th
-	# sum_y = 0
-	# count = 0
-	# for i in range(max(0, cy0 - th), min(h, cy0 + th)):
-	# 	sum_y += hist_h[i] * i
-	# 	count += hist_h[i]
-	# cy1 = sum_y / count
+	cy = np.argmax(tmp_h) - th
 	
-	# best_idx = []
-	# distance = []
-	# count_in = 0
-	# for i, pt in enumerate(pts):
-	# 	D = np.min(np.abs(pts - pt), axis = 1)
-	# 	valid = D < th
-	# 	count = np.sum(valid)
-	# 	di = np.average(D[valid])
-	#
-	# 	if count == count_in:
-	# 		best_idx.append(i)
-	# 		distance.append(di)
-	# 	elif count > count_in:
-	# 		best_idx = [i]
-	# 		distance = [di]
-	# 		count_in = count
-	# cx0, cy0 = pts[best_idx[np.argmin(distance)]]
-	cx1 = np.mean(xs[np.logical_and(xs > cx0 - th - th, xs < cx0 + th + th)])
-	cy1 = np.mean(ys[np.logical_and(ys > cy0 - th - th, ys < cy0 + th + th)])
-	# if (cx1 - cx0) * (cx1 - cx0) > 4 or (cy1 - cy0) * (cy1 - cy0) > 4:
-	# 	return float(cy0), float(cy0)
-	# s = datetime.now().strftime("%Y_%m%d_%H%M_%S.%f")
-	# img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-	# img = cv2.circle(img, (round(cx0), round(cy0)), 2, (255, 80, 0), cv2.FILLED)
-	# img = cv2.circle(img, (round(cx1), round(cy1)), 2, (0, 80, 255), cv2.FILLED)
-	# cv2.imwrite(folder + "img_" + s + "b.jpg", img)
-	return float(cx1), float(cy1)
+	th2 = th * 2
+	cx = float(np.mean(xs[np.logical_and(xs > cx - th2, xs < cx + th2)]))
+	cy = float(np.mean(ys[np.logical_and(ys > cy - th2, ys < cy + th2)]))
+	return cx, cy
 
 
 class CNode:
@@ -133,14 +93,6 @@ class CNode:
 		P3 = self.N3.get_pos()
 		return np.asarray([P0, P1, P2, P3], float)
 	
-	# def get_roi(self):
-	# 	pts = self.get_corners()
-	# 	h0 = int(np.min(pts[:, 0]))
-	# 	w0 = int(np.min(pts[:, 1]))
-	# 	h1 = math.ceil(np.max(pts[:, 0]))
-	# 	w1 = math.ceil(np.max(pts[:, 1]))
-	# 	return h0, w0, h1, w1
-	
 	def detect(self, W, H, image, mask, th):
 		pts = self.get_corners()
 		x0 = int(np.min(pts[:, 0]))
@@ -150,21 +102,25 @@ class CNode:
 		
 		P_src = np.asarray(pts - (x0, y0), np.float32)
 		P_dst = np.asarray([[0, 0], [W, 0], [W, H], [0, H]], np.float32)
+		# inv_mat = cv2.getPerspectiveTransform(P_dst, P_src)
+		# mat = np.linalg.inv(inv_mat)
 		mat = cv2.getPerspectiveTransform(P_src, P_dst)
-		dst = cv2.warpPerspective(image[y0:y1, x0:x1], mat, (W, H), flags = cv2.INTER_LINEAR,
-		                          borderMode = cv2.BORDER_REFLECT)
+		dst = cv2.warpPerspective(image[y0:y1, x0:x1], mat, (W, H),
+		                          flags = cv2.INTER_CUBIC, borderMode = cv2.BORDER_REFLECT)
 		cx0, cy0 = detect_center_cross(dst, mask, th = th)
 		
 		# s = datetime.now().strftime("%Y_%m%d_%H%M_%S.%f")
-		# dst = cv2.circle(dst, (round(cx0), round(cy0)), 2, (255, 80, 0), cv2.FILLED)
-		# cv2.imwrite(folder + "img_" + s + "a.jpg", cv2.cvtColor(dst, cv2.COLOR_RGB2BGR))
+		# dst = cv2.cvtColor(dst, cv2.COLOR_GRAY2BGR)
+		# dst = cv2.circle(dst, (round(cx0), round(cy0)), 2, (0, 80, 255), cv2.FILLED)
+		# cv2.imwrite(folder + "img_" + s + "a.jpg", dst)
 		
-		# inv_mat = np.linalg.inv(mat)
 		inv_mat = cv2.getPerspectiveTransform(P_dst, P_src)
+		# inv_mat = np.linalg.inv(mat)
 		den = inv_mat[2, 0] * cx0 + inv_mat[2, 1] * cy0 + inv_mat[2, 2]
 		cx1 = float((inv_mat[0, 0] * cx0 + inv_mat[0, 1] * cy0 + inv_mat[0, 2]) / den)
 		cy1 = float((inv_mat[1, 0] * cx0 + inv_mat[1, 1] * cy0 + inv_mat[1, 2]) / den)
-		# cx, cy = cv2.perspectiveTransform(np.asarray([[[cx, cy]]]), inv_mat, None).ravel()
+		# cx1 = float((inv_mat[0, 0] * cx0 + inv_mat[0, 1] * cy0 + inv_mat[0, 2]) / den) + 0.45
+		# cy1 = float((inv_mat[1, 0] * cx0 + inv_mat[1, 1] * cy0 + inv_mat[1, 2]) / den) + 0.45
 		
 		k1 = min((x1 - x0 - cx1), cx1) / max((x1 - x0 - cx1), cx1)
 		k2 = min((y1 - y0 - cy1), cy1) / max((y1 - y0 - cy1), cy1)
@@ -177,4 +133,4 @@ class CNode:
 		# cv2.imwrite(folder + "img_" + s + "b.jpg", cv2.cvtColor(tmp, cv2.COLOR_RGB2BGR))
 		# sleep(0.01)
 		
-		return float(cx1 + x0 + 0.4), float(cy1 + y0 + 0.4)
+		return cx1 + x0, cy1 + y0

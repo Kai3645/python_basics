@@ -11,7 +11,7 @@ from Node import CNode, circle_mask
 
 class MainCanvas(DisplayCanvas):
 	PPMM = 10  # pixel/mm
-	DETECT_THRESHOLD = round(PPMM * 0.35)
+	DETECT_THRESHOLD = 0.04
 	
 	def __init__(self, win, width, height):
 		super().__init__(win, width, height)
@@ -275,21 +275,22 @@ class MainCanvas(DisplayCanvas):
 	def node_cross_detect(self):
 		w = round(self.grid_wa * 2 * self.PPMM)
 		h = round(self.grid_ha * 2 * self.PPMM)
+		th = round(max(self.grid_wa, self.grid_ha) * self.DETECT_THRESHOLD * self.PPMM)
 		mask = circle_mask(w, h, 0.90)
 		# src = self.img_cash[0][2]
 		src = cv2.cvtColor(self.img_cash[0][2], cv2.COLOR_BGR2GRAY)
-		src = cv2.GaussianBlur(src, (3, 3), 1.414)
+		# src = cv2.GaussianBlur(src, (5, 5), 1.414)
 		
 		center_pts = np.zeros((self.grid_wn + 1, self.grid_hn + 1, 2))
 		flags = np.full((self.grid_wn + 1, self.grid_hn + 1), False)
-		for t in range(50):
+		for t in range(4):
 			is_changed = False
 			print(f"==================== round {t} ====================")
 			for i in range(1, self.grid_wn):
 				for j in range(1, self.grid_hn):
 					if flags[i][j]: continue
 					flags[i][j] = True
-					center_pts[i, j] = self.node_map[i][j].detect(w, h, src, mask, self.DETECT_THRESHOLD)
+					center_pts[i, j] = self.node_map[i][j].detect(w, h, src, mask, th)
 					print(i, j, center_pts[i, j].round(2))
 					pass
 				pass
