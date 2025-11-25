@@ -4,7 +4,7 @@ import numpy as np
 
 
 class Sudoku:
-	def __init__(self, board, block):
+	def __init__(self, board, xy2uv):
 		"""
 		x, i -> row
 		y, j -> column
@@ -17,12 +17,11 @@ class Sudoku:
 			2->block
 			3->depth
 		:param board: [0, 9], 0 -> empty
-		:param block: [1, 9]
+		:param xy2uv:
 		"""
 
 		class Node:
 			def __init__(self):
-				self.is_available: bool = True
 				self.info = None  # row, column, depth
 				self.H_ids = None  # head indexes
 				pass
@@ -31,41 +30,22 @@ class Sudoku:
 		self.result = board
 		self.saved_results = []  # 解的存储
 
-		# 行列与块标间映射
-		self.map_xy2uv = [[[0, 0] for _ in range(9)] for _ in range(9)]
-		self.map_uv2xy = [[[0, 0] for _ in range(9)] for _ in range(9)]
-
 		# 检索表
 		self.candies = [Node() for _ in range(729)]
 		self.heads = [set() for _ in range(324)]
-		self.scanners = [
-			set(range(0, 81)),
-			set(range(81, 162)),
-			set(range(162, 243)),
-			set(range(243, 324)),
-		]
+		self.scanners = [set(range(0, 81)), set(range(81, 162)), set(range(162, 243)), set(range(243, 324))]
 
 		self.compliance_flag = True
 		self.step_recorder = [0] * 729
 		self.step_id = 0
 		self.guess_list = []
 
-		# 初始化映射表
-		for m in range(9):
-			n = 0
-			for i in range(9):
-				for j in range(9):
-					if block[i][j] - 1 != m: continue
-					self.map_xy2uv[i][j][:] = m, n
-					self.map_uv2xy[m][n][:] = i, j
-					n += 1
-			pass
-
+		self.xy2uv = xy2uv
 		# 初始候选表
 		for i in range(9):
 			for j in range(9):
 				for d in range(9):
-					u = self.map_xy2uv[i][j][0]
+					u = self.xy2uv[i][j][0]
 					item_id = i * 81 + j * 9 + d
 					H0 = i * 9 + d
 					H1 = j * 9 + d + 81
@@ -107,26 +87,19 @@ class Sudoku:
 		return -1
 
 	def hide_candy(self, item_id):
-		if not self.candies[item_id].is_available:
-			print("uncompliance Sudoku ..")
-			exit()
 		self.step_recorder[self.step_id] = item_id
 		self.step_id += 1
-
-		self.candies[item_id].is_available = False
-
 		for H_id in self.candies[item_id].H_ids:
-			self.heads[H_id].remove(item_id)
+			self.heads[H_id].discard(item_id)
 		pass
 
 	def prune_links(self, item_id):
 		for t, H_id in enumerate(self.candies[item_id].H_ids):
 			for hook in self.heads[H_id].copy():
 				self.hide_candy(hook)
-			self.scanners[t].remove(H_id)
+			self.scanners[t].discard(H_id)
 
 	def show_candy(self, item_id):
-		self.candies[item_id].is_available = True
 		for t, H_id in enumerate(self.candies[item_id].H_ids):
 			if len(self.heads[H_id]) == 0:
 				self.scanners[t].add(H_id)
@@ -159,6 +132,7 @@ class Sudoku:
 		x, y, d = self.candies[item_id].info
 		self.result[x][y] = d + 1
 		self.guess_list.append(self.step_id)
+		print(f"{self.guess_list} -> ({x + 1}, {y + 1}) = {d + 1}")
 		self.hide_candy(item_id)
 		self.prune_links(item_id)
 
@@ -183,6 +157,7 @@ class Sudoku:
 			if len(self.scanners[3]) > 0:
 				self.step_forward()
 				continue
+			print(f"-> got result {count:02d}")
 			self.saved_results.append(np.asarray(self.result))
 			if count > max_result:
 				break
@@ -198,8 +173,8 @@ class Sudoku:
 				for j in range(9):
 					if j > 0:
 						tmp += "┼"
-					m1 = self.map_xy2uv[i][j][0]
-					m2 = self.map_xy2uv[i - 1][j][0]
+					m1 = self.xy2uv[i][j][0]
+					m2 = self.xy2uv[i - 1][j][0]
 					if m1 == m2:
 						tmp += "∙∙∙"
 					else:
@@ -208,8 +183,8 @@ class Sudoku:
 			tmp += "║ "
 			for j in range(9):
 				if j > 0:
-					m1 = self.map_xy2uv[i][j][0]
-					m2 = self.map_xy2uv[i][j - 1][0]
+					m1 = self.xy2uv[i][j][0]
+					m2 = self.xy2uv[i][j - 1][0]
 					if m1 == m2:
 						tmp += " : "
 					else:
@@ -243,6 +218,30 @@ if __name__ == '__main__':
 	def main():
 		max_result = 16
 		t0 = time.time()
+
+		xy2uv = [[[0, 0] for _ in range(9)] for _ in range(9)]
+		uv2xy = [[[0, 0] for _ in range(9)] for _ in range(9)]
+		block = [
+			[1, 1, 1, 2, 2, 2, 3, 3, 3, ],
+			[1, 1, 1, 2, 2, 2, 3, 3, 3, ],
+			[1, 1, 1, 2, 2, 2, 3, 3, 3, ],
+			[4, 4, 4, 5, 5, 5, 6, 6, 6, ],
+			[4, 4, 4, 5, 5, 5, 6, 6, 6, ],
+			[4, 4, 4, 5, 5, 5, 6, 6, 6, ],
+			[7, 7, 7, 8, 8, 8, 9, 9, 9, ],
+			[7, 7, 7, 8, 8, 8, 9, 9, 9, ],
+			[7, 7, 7, 8, 8, 8, 9, 9, 9, ],
+		]
+		for m in range(9):
+			n = 0
+			for i in range(9):
+				for j in range(9):
+					if block[i][j] - 1 != m: continue
+					xy2uv[i][j][:] = m, n
+					uv2xy[m][n][:] = i, j
+					n += 1
+			pass
+
 		sudoku = Sudoku(board = [
 			[8, 0, 0, 0, 0, 0, 0, 0, 0, ],
 			[0, 0, 3, 6, 0, 0, 0, 0, 0, ],
@@ -253,17 +252,7 @@ if __name__ == '__main__':
 			[0, 0, 1, 0, 0, 0, 0, 6, 8, ],
 			[0, 0, 8, 5, 0, 0, 0, 1, 0, ],
 			[0, 9, 0, 0, 0, 0, 4, 0, 0, ],
-		], block = [
-			[1, 1, 1, 2, 2, 2, 3, 3, 3, ],
-			[1, 1, 1, 2, 2, 2, 3, 3, 3, ],
-			[1, 1, 1, 2, 2, 2, 3, 3, 3, ],
-			[4, 4, 4, 5, 5, 5, 6, 6, 6, ],
-			[4, 4, 4, 5, 5, 5, 6, 6, 6, ],
-			[4, 4, 4, 5, 5, 5, 6, 6, 6, ],
-			[7, 7, 7, 8, 8, 8, 9, 9, 9, ],
-			[7, 7, 7, 8, 8, 8, 9, 9, 9, ],
-			[7, 7, 7, 8, 8, 8, 9, 9, 9, ],
-		])
+		], xy2uv = xy2uv)
 		print(f"init time = {time.time() - t0:.4f} s")
 		print(sudoku)
 
