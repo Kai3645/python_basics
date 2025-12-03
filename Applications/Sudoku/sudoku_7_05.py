@@ -315,7 +315,7 @@ class Sudoku:
 					m1 = self.xy2uv[i][j][0]
 					m2 = self.xy2uv[i - 1][j][0]
 					if m1 == m2:
-						tmp += "⋅⋅⋅⋅⋅⋅⋅"
+						tmp += "・-・-・"
 					else:
 						tmp += "═══════"
 				tmp += "║\n"
@@ -389,7 +389,7 @@ class Sudoku:
 					m1 = self.xy2uv[i][j][0]
 					m2 = self.xy2uv[i - 1][j][0]
 					if m1 == m2:
-						tmp += "∙∙∙"
+						tmp += " - "
 					else:
 						tmp += "═══"
 				tmp += "║\n"
